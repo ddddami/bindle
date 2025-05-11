@@ -12,7 +12,6 @@ type Options struct {
 }
 
 // Generate creates a random string of the specified length using the characters defined in the chars constant.
-
 func Generate(opts Options) (string, error) {
 	if opts.Length < 0 {
 		return "", fmt.Errorf("length must be greater than -1")
