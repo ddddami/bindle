@@ -85,8 +85,13 @@ func SaveUploadedFile(file *multipart.FileHeader, opts *FileUploadOptions) (*Sav
 	}
 
 	var destFileName string
+
+	baseFileName := strings.TrimSuffix(origFileName, filepath.Ext(origFileName))
+	if opts.FilenamePrefix != "" {
+		baseFileName = fmt.Sprintf("%s_%s", opts.FilenamePrefix, baseFileName)
+	}
+
 	if opts.RandomizeFilename {
-		baseFileName := strings.TrimSuffix(origFileName, filepath.Ext(origFileName))
 		random, err := random.Generate(random.Options{Length: 8})
 		if err != nil {
 			return nil, fmt.Errorf("failed to generate random string: %w", err)
