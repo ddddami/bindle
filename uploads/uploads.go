@@ -193,3 +193,30 @@ func SaveSingleFormFile(r *http.Request, fieldName string, opts *FileUploadOptio
 
 	return SaveUploadedFile(files[0], opts)
 }
+
+func SaveMultipleFormFiles(r *http.Request, fieldName string, opts *FileUploadOptions) ([]*SavedFile, error) {
+	if r.MultipartForm == nil {
+		if err := r.ParseMultipartForm(32 << 20); err != nil {
+			return nil, fmt.Errorf("failed to parse multipart from %w", err)
+		}
+	}
+
+	files := r.MultipartForm.File[fieldName]
+	if len(files) == 0 {
+		return nil, fmt.Errorf("no files uploaded with the given field name '%s'", fieldName)
+	}
+
+	var savedFiles []*SavedFile
+	for _, fileHeader := range files {
+		savedFile, err := SaveUploadedFile(fileHeader, opts)
+		if err != nil {
+			for _, saved := range savedFiles {
+				os.Remove(saved.SavedPath)
+			}
+		}
+
+		savedFiles = append(savedFiles, savedFile)
+
+	}
+	return savedFiles, nil
+}
