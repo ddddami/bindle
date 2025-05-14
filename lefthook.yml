@@ -1,0 +1,16 @@
+pre-push:
+  jobs:
+    - name: test
+      run: go test ./...
+
+pre-commit:
+  jobs:
+    - name: fmt
+      glob: "*.{go}"
+      stage_fixed: true
+      run: go fmt {staged_files}
+
+    - name: vet
+      glob: "*.{go}"
+      stage_fixed: true
+      run: go vet {staged_files}
