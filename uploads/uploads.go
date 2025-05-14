@@ -11,6 +11,7 @@ import (
 	"strings"
 
 	"github.com/ddddami/bindle/random"
+	"github.com/ddddami/bindle/strutil"
 )
 
 var (
@@ -103,7 +104,7 @@ func SaveUploadedFile(file *multipart.FileHeader, opts *FileUploadOptions) (*Sav
 		destFileName = origFileName
 	}
 
-	destFileName = santizeFileName(destFileName)
+	destFileName = strutil.FormatFilename(destFileName)
 
 	destPath := filepath.Join(opts.DestinationDir, destFileName)
 
@@ -166,22 +167,6 @@ func SaveUploadedFile(file *multipart.FileHeader, opts *FileUploadOptions) (*Sav
 		MIMEType:     file.Header.Get("Content-Type"),
 	}
 	return savedFile, nil
-}
-
-func santizeFileName(fileName string) string {
-	replacer := strings.NewReplacer(
-		" ", "_",
-		"\\", "",
-		"/", "",
-		":", "",
-		"*", "",
-		"?", "",
-		"\"", "",
-		"<", "",
-		">", "",
-		"|", "",
-	)
-	return replacer.Replace(fileName)
 }
 
 func SaveSingleFormFile(r *http.Request, fieldName string, opts *FileUploadOptions) (*SavedFile, error) {

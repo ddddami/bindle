@@ -9,26 +9,6 @@ import (
 	"testing"
 )
 
-func TestSanitizeFileName(t *testing.T) {
-	testCases := []struct {
-		input    string
-		expected string
-	}{
-		{"normal.txt", "normal.txt"},
-		{"file with spaces.jpg", "file_with_spaces.jpg"},
-		{"../../../etc/passwd", "......etcpasswd"},
-		{"file:with:colons.png", "filewithcolons.png"},
-		{"file*with?invalid\"chars.xxx", "filewithinvalidchars.xxx"},
-	}
-
-	for _, tc := range testCases {
-		result := santizeFileName(tc.input)
-		if result != tc.expected {
-			t.Errorf("For input '%s', expected '%s' but got '%s'", tc.input, tc.expected, result)
-		}
-	}
-}
-
 func TestSaveUploadedFile(t *testing.T) {
 	testDir := "test_uploads"
 	os.RemoveAll(testDir)
