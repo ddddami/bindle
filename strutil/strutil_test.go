@@ -199,3 +199,22 @@ func TestStripHTML(t *testing.T) {
 		})
 	}
 }
+
+func TestSlugify(t *testing.T) {
+	testCases := []struct {
+		input    string
+		expected string
+	}{
+		{"All GOOD boys deserve FANTA", "all-good-boys-deserve-fanta"},
+		{" N is Awesome i guess!", "n-is-awesome-i-guess"},
+		{"  Leading and trailing spaces  ", "leading-and-trailing-spaces"},
+		{"Special@#$%^&*()Characters", "specialcharacters"},
+	}
+
+	for _, tc := range testCases {
+		result := Slugify(tc.input)
+		if result != tc.expected {
+			t.Errorf("For input '%s', expected '%s' but got '%s'", tc.input, tc.expected, result)
+		}
+	}
+}

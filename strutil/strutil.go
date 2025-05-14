@@ -77,3 +77,20 @@ func FormatFilename(input string) string {
 
 	return output
 }
+
+// Slugify converts a string into a URL-friendly slug
+func Slugify(input string) string {
+	output := strings.ToLower(input)
+	output = strings.ReplaceAll(output, " ", "-")
+	output = regexp.MustCompile(`[^\w-]`).ReplaceAllString(output, "")
+
+	// Replace multiple hyphens with a single one
+	output = regexp.MustCompile(`-+`).ReplaceAllString(output, "-")
+	output = strings.Trim(output, "-")
+
+	if output == "" {
+		output = "slug"
+	}
+
+	return output
+}
