@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"mime"
 	"mime/multipart"
 	"net/http"
 	"os"
@@ -209,4 +210,73 @@ func SaveMultipleFormFiles(r *http.Request, fieldName string, opts *FileUploadOp
 
 	}
 	return savedFiles, nil
+}
+
+type DownloadOptions struct {
+	ForceDownload     bool
+	SuggestedFilename string
+	ContentType       string
+	ExtraHeaders      map[string]string
+}
+
+func DefaultDownloadOptions() DownloadOptions {
+	return DownloadOptions{
+		ForceDownload: true,
+		ExtraHeaders:  make(map[string]string),
+	}
+}
+
+// ServeFileForDownload serves a file for download with the specified options
+func ServeFileForDownload(w http.ResponseWriter, r *http.Request, filePath string, opts DownloadOptions) error {
+	fileInfo, err := os.Stat(filePath)
+	if err != nil {
+		if os.IsNotExist(err) {
+			return fmt.Errorf("file not found: %w", err)
+		}
+		return fmt.Errorf("error accessing file: %w", err)
+	}
+
+	if fileInfo.IsDir() {
+		return fmt.Errorf("cannot download a directory: %s", filePath)
+	}
+
+	file, err := os.Open(filePath)
+	if err != nil {
+		return fmt.Errorf("failed to open file: %w", err)
+	}
+	defer file.Close()
+
+	downloadFilename := opts.SuggestedFilename
+	if downloadFilename == "" {
+		downloadFilename = filepath.Base(filePath)
+	}
+
+	contentType := opts.ContentType
+	if contentType == "" {
+		contentType = mime.TypeByExtension(filepath.Ext(filePath))
+		if contentType == "" {
+			// Default to binary data if type can't be determined
+			contentType = "application/octet-stream"
+		}
+	}
+
+	w.Header().Set("Content-Type", contentType)
+	if opts.ForceDownload {
+		w.Header().Set("Content-Disposition", fmt.Sprintf(`attachment; filename="%s"`, downloadFilename))
+	} else {
+		w.Header().Set("Content-Disposition", fmt.Sprintf(`inline; filename="%s"`, downloadFilename))
+	}
+
+	w.Header().Set("Content-Length", fmt.Sprintf("%d", fileInfo.Size()))
+
+	for key, value := range opts.ExtraHeaders {
+		w.Header().Set(key, value)
+	}
+
+	if _, err := io.Copy(w, file); err != nil {
+		return fmt.Errorf("error sending file: %w", err)
+	}
+	// http.ServeFile(w, r, downloadFilename)
+
+	return nil
 }
