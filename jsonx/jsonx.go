@@ -98,6 +98,10 @@ func mergeOptions(defaults Options, customs ...Options) Options {
 
 // DecodeJSON decodes JSON from an io.Reader into the provided target
 func DecodeJSON(r io.Reader, target any) error {
+	if r == nil {
+		return ErrNoContent
+	}
+
 	if target == nil || reflect.ValueOf(target).Kind() != reflect.Ptr || reflect.ValueOf(target).IsNil() {
 		return ErrInvalidTarget
 	}
